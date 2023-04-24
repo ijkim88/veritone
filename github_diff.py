@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
+import logging
 import requests
 
 from typing import Any, Dict
+
+log = logging.getLogger(__name__)
 
 TOKEN = ""
 
@@ -24,15 +27,20 @@ class Repository:
         response.raise_for_status()
         return response.json()
 
-    def print_diff_commit_messages(self, base: str, head: str) -> None:
+    def print_diff_commit_messages(
+        self, base: str, head: str, oneline: bool = True
+    ) -> None:
         diff = self.get_diff(base, head)
         for commit in diff.get("commits", []):
             sha = commit.get("sha")
             details = commit.get("commit", {})
             message = details.get("message", "")
-            print(f"{sha:.10}\t{message}")
+            if oneline:
+                message = message.splitlines()[0]
+            log.info(f"{sha:.10}\t{message}")
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format="%(message)s", level=logging.INFO)
     repo = Repository(organization="psf", repository="requests")
     repo.print_diff_commit_messages("HEAD~5", "HEAD")
