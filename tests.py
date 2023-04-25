@@ -3,7 +3,7 @@ import requests
 import subprocess as sp
 import unittest
 
-from github_diff import AccessToken, Repository
+from github_compare import AccessToken, Repository
 
 
 class TestRepository(unittest.TestCase):
@@ -34,20 +34,20 @@ class TestRepository(unittest.TestCase):
             list(self.repo.get_compare_commits(base="bogus", head="sha"))
 
     def test_can_print_compare_commit_messages(self):
-        with self.assertLogs("github_diff", level="INFO") as cm:
+        with self.assertLogs("github_compare", level="INFO") as cm:
             self.repo.print_compare_commit_messages(base="0984cda", head="71c4e08")
         self.assertEqual(len(cm.output), 5)
 
     def test_print_compare_commit_messages_with_invalid_shas_logs_error(self):
-        with self.assertLogs("github_diff", level="ERROR") as cm:
+        with self.assertLogs("github_compare", level="ERROR") as cm:
             self.repo.print_compare_commit_messages(base="bogus", head="sha")
-        self.assertIn("ERROR:github_diff:Failed to get compare commit(s)", cm.output)
+        self.assertIn("ERROR:github_compare:Failed to get compare commit(s)", cm.output)
 
 
 class TestCli(unittest.TestCase):
     def test_can_print_compare_commit_messages(self):
         process = sp.run(
-            "./github_diff.py ijkim88 veritone 0984cda 71c4e08",
+            "./github_compare.py ijkim88 veritone 0984cda 71c4e08",
             capture_output=True,
             shell=True,
         )
