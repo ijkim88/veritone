@@ -4,6 +4,7 @@ import logging
 import os
 import requests
 
+from argparse import ArgumentParser
 from typing import Any, Dict
 
 log = logging.getLogger(__name__)
@@ -43,5 +44,13 @@ class Repository:
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(message)s", level=logging.INFO)
-    repo = Repository(organization="psf", repository="requests")
-    repo.print_diff_commit_messages("HEAD~5", "HEAD")
+
+    parser = ArgumentParser()
+    parser.add_argument("organization", help="GitHub Organization")
+    parser.add_argument("repository", help="Repository Name")
+    parser.add_argument("base", help="Base Commit")
+    parser.add_argument("head", help="Head Commit")
+    args = parser.parse_args()
+
+    repo = Repository(organization=args.organization, repository=args.repository)
+    repo.print_diff_commit_messages(args.base, args.head)
