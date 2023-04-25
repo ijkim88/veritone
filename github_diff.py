@@ -7,7 +7,7 @@ import requests
 from argparse import ArgumentParser
 from requests import Session
 from requests.models import PreparedRequest
-from typing import Any, Dict
+from typing import Any, Dict, Iterator
 
 log = logging.getLogger(__name__)
 
@@ -27,29 +27,45 @@ class Repository:
         self.repository = repository
         self.session = session
 
-    def get_diff(self, base: str, head: str) -> Dict[str, Any]:
-        response = self.session.get(
-            f"https://api.github.com/repos/{self.organization}/{self.repository}/compare/{base}...{head}"
-        )
-        response.raise_for_status()
-        return response.json()
+    def get_diff_commits(
+        self, base: str, head: str, per_page: int = 30
+    ) -> Iterator[Dict[str, Any]]:
+        page = 1
+        commit_count = 0
+        total_commits = None
+        while (total_commits is None) or (commit_count < total_commits):
+            response = self.session.get(
+                f"https://api.github.com/repos/{self.organization}/{self.repository}/compare/{base}...{head}",
+                params={
+                    "page": page,
+                    "per_page": per_page,
+                },
+            )
+            response.raise_for_status()
+
+            data = response.json()
+            total_commits = data["total_commits"]
+            commit_count = commit_count + len(data["commits"])
+            for commit in data["commits"]:
+                yield commit
+
+            page = page + 1
 
     def print_diff_commit_messages(
         self, base: str, head: str, oneline: bool = True
     ) -> None:
         try:
-            diff = self.get_diff(base, head)
+            for commit in self.get_diff_commits(base, head):
+                sha = commit.get("sha")
+                details = commit.get("commit", {})
+                message = details.get("message", "")
+                if oneline:
+                    message = message.splitlines()[0]
+                log.info(f"{sha:.10}\t{message}")
+
         except Exception:
             log.error("Failed to get commit diff")
             return
-
-        for commit in diff.get("commits", []):
-            sha = commit.get("sha")
-            details = commit.get("commit", {})
-            message = details.get("message", "")
-            if oneline:
-                message = message.splitlines()[0]
-            log.info(f"{sha:.10}\t{message}")
 
 
 if __name__ == "__main__":
