@@ -1,12 +1,23 @@
+import os
+import requests
 import subprocess as sp
 import unittest
 
-from github_diff import Repository
+from github_diff import AccessToken, Repository
 
 
 class TestRepository(unittest.TestCase):
     def setUp(self):
-        self.repo = Repository(organization="psf", repository="requests")
+        self.session = requests.Session()
+        self.session.headers.update({
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        })
+        self.session.auth = AccessToken(os.environ.get("GH_TOKEN"))
+        self.repo = Repository(organization="psf", repository="requests", session=self.session)
+
+    def tearDown(self):
+        self.session.close()
 
     def test_can_get_diff(self):
         diff = self.repo.get_diff(base="HEAD~5", head="HEAD")
