@@ -27,10 +27,19 @@ class TestRepository(unittest.TestCase):
         diff = self.repo.get_diff(base="HEAD~5", head="HEAD")
         self.assertEqual(len(diff["commits"]), 5)
 
+    def test_get_diff_with_invalid_shas_raises_exception(self):
+        with self.assertRaises(requests.exceptions.HTTPError):
+            self.repo.get_diff(base="bogus", head="sha")
+
     def test_can_print_diff(self):
         with self.assertLogs("github_diff", level="INFO") as cm:
             self.repo.print_diff_commit_messages(base="HEAD~5", head="HEAD")
         self.assertEqual(len(cm.output), 5)
+
+    def test_print_diff_with_invalid_shas_logs_error(self):
+        with self.assertLogs("github_diff", level="ERROR") as cm:
+            self.repo.print_diff_commit_messages(base="bogus", head="sha")
+        self.assertIn("ERROR:github_diff:Failed to get commit diff", cm.output)
 
 
 class TestCli(unittest.TestCase):
