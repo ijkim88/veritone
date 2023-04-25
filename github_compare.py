@@ -10,6 +10,7 @@ from requests.models import PreparedRequest
 from typing import Any, Dict, Iterator
 
 log = logging.getLogger(__name__)
+TOKEN_REQUIRED_MESSAGE = "Set environment variable $GH_TOKEN with GitHub Personal Access Token for authentication"
 
 
 class AccessToken(requests.auth.AuthBase):
@@ -71,12 +72,15 @@ class Repository:
 if __name__ == "__main__":
     logging.basicConfig(format="%(message)s", level=logging.INFO)
 
-    parser = ArgumentParser()
+    parser = ArgumentParser(description=TOKEN_REQUIRED_MESSAGE)
     parser.add_argument("organization", help="GitHub Organization")
     parser.add_argument("repository", help="Repository Name")
     parser.add_argument("base", help="Base Commit")
     parser.add_argument("head", help="Head Commit")
     args = parser.parse_args()
+
+    if not os.environ.get("GH_TOKEN"):
+        raise Exception(TOKEN_REQUIRED_MESSAGE)
 
     with requests.Session() as session:
         session.headers.update(

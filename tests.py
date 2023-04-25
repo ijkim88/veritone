@@ -53,3 +53,15 @@ class TestCli(unittest.TestCase):
         )
         commits = process.stderr.decode("utf-8").splitlines()
         self.assertEqual(len(commits), 5)
+
+    def test_github_token_environment_variable_required(self):
+        env = dict(os.environ)
+        del env["GH_TOKEN"]
+        with self.assertRaises(sp.CalledProcessError):
+            sp.run(
+                "./github_compare.py ijkim88 veritone 0984cda 71c4e08",
+                check=True,
+                env=env,
+                shell=True,
+                stderr=sp.DEVNULL,
+            )
