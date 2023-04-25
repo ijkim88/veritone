@@ -10,6 +10,7 @@ from requests.models import PreparedRequest
 from typing import Any, Dict, Iterator
 
 log = logging.getLogger(__name__)
+TOKEN_REQUIRED_MESSAGE = "Set environment variable $GH_TOKEN with GitHub Personal Access Token for authentication"
 
 
 class AccessToken(requests.auth.AuthBase):
@@ -27,7 +28,7 @@ class Repository:
         self.repository = repository
         self.session = session
 
-    def get_diff_commits(
+    def get_compare_commits(
         self, base: str, head: str, per_page: int = 30
     ) -> Iterator[Dict[str, Any]]:
         page = 1
@@ -51,11 +52,11 @@ class Repository:
 
             page = page + 1
 
-    def print_diff_commit_messages(
+    def print_compare_commit_messages(
         self, base: str, head: str, oneline: bool = True
     ) -> None:
         try:
-            for commit in self.get_diff_commits(base, head):
+            for commit in self.get_compare_commits(base, head):
                 sha = commit.get("sha")
                 details = commit.get("commit", {})
                 message = details.get("message", "")
@@ -64,19 +65,22 @@ class Repository:
                 log.info(f"{sha:.10}\t{message}")
 
         except Exception:
-            log.error("Failed to get commit diff")
+            log.error("Failed to get compare commit(s)")
             return
 
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(message)s", level=logging.INFO)
 
-    parser = ArgumentParser()
+    parser = ArgumentParser(description=TOKEN_REQUIRED_MESSAGE)
     parser.add_argument("organization", help="GitHub Organization")
     parser.add_argument("repository", help="Repository Name")
     parser.add_argument("base", help="Base Commit")
     parser.add_argument("head", help="Head Commit")
     args = parser.parse_args()
+
+    if not os.environ.get("GH_TOKEN"):
+        raise Exception(TOKEN_REQUIRED_MESSAGE)
 
     with requests.Session() as session:
         session.headers.update(
@@ -89,4 +93,4 @@ if __name__ == "__main__":
         repo = Repository(
             organization=args.organization, repository=args.repository, session=session
         )
-        repo.print_diff_commit_messages(args.base, args.head)
+        repo.print_compare_commit_messages(args.base, args.head)
