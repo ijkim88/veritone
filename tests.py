@@ -9,12 +9,16 @@ from github_diff import AccessToken, Repository
 class TestRepository(unittest.TestCase):
     def setUp(self):
         self.session = requests.Session()
-        self.session.headers.update({
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        })
+        self.session.headers.update(
+            {
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            }
+        )
         self.session.auth = AccessToken(os.environ.get("GH_TOKEN"))
-        self.repo = Repository(organization="psf", repository="requests", session=self.session)
+        self.repo = Repository(
+            organization="psf", repository="requests", session=self.session
+        )
 
     def tearDown(self):
         self.session.close()

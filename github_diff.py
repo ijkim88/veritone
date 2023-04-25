@@ -28,7 +28,9 @@ class Repository:
         self.session = session
 
     def get_diff(self, base: str, head: str) -> Dict[str, Any]:
-        response = self.session.get(f"https://api.github.com/repos/{self.organization}/{self.repository}/compare/{base}...{head}")
+        response = self.session.get(
+            f"https://api.github.com/repos/{self.organization}/{self.repository}/compare/{base}...{head}"
+        )
         response.raise_for_status()
         return response.json()
 
@@ -56,10 +58,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with requests.Session() as session:
-        session.headers.update({
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        })
+        session.headers.update(
+            {
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            }
+        )
         session.auth = AccessToken(os.environ.get("GH_TOKEN"))
-        repo = Repository(organization=args.organization, repository=args.repository, session=session)
+        repo = Repository(
+            organization=args.organization, repository=args.repository, session=session
+        )
         repo.print_diff_commit_messages(args.base, args.head)
