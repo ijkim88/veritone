@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import logging
+import os
 import requests
 
 from typing import Any, Dict
 
 log = logging.getLogger(__name__)
 
-TOKEN = ""
+TOKEN = os.environ.get("GH_TOKEN")
 
 
 class Repository:
