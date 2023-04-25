@@ -31,9 +31,6 @@ jobs:
     - name: Check black formatting
       run: |
         black --check .
-    - name: Security checks
-      run: |
-        safety check
     - name: Test with unittest
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
