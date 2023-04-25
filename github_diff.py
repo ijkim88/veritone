@@ -37,7 +37,12 @@ class Repository:
     def print_diff_commit_messages(
         self, base: str, head: str, oneline: bool = True
     ) -> None:
-        diff = self.get_diff(base, head)
+        try:
+            diff = self.get_diff(base, head)
+        except Exception:
+            log.error("Failed to get commit diff")
+            return
+
         for commit in diff.get("commits", []):
             sha = commit.get("sha")
             details = commit.get("commit", {})
