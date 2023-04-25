@@ -27,7 +27,7 @@ jobs:
         pip install -r requirements.dev.txt
     - name: Lint with pyflakes
       run: |
-        flake8 .
+        flake8 . --max-line-length=127
     - name: Check black formatting
       run: |
         black --check .
